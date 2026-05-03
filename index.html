@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Study Planner</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="auth-screen" style="display: none;">
+        <div class="auth-card glass-panel">
+            <div class="auth-logo">
+                <i class="ph-fill ph-student"></i>
+                <span>StudySpace</span>
+            </div>
+            <div class="auth-subtitle">Sign in to your account</div>
+            <div class="form-group" id="auth-name-group" style="display: none;">
+                <label>Full Name</label>
+                <input type="text" id="auth-name" placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="auth-email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="auth-password" placeholder="••••••••">
+            </div>
+            <p id="auth-error" style="color: var(--status-danger); font-size: 0.85rem; margin: 0; display: none;"></p>
+            <p id="auth-success" style="color: var(--status-success); font-size: 0.85rem; margin: 0; display: none;"></p>
+            <button class="btn-primary" id="auth-submit-btn" style="width: 100%; justify-content: center; margin-top: 8px;">Sign In</button>
+            <div class="auth-toggle">
+                <span id="auth-toggle-text">Don't have an account?</span> 
+                <a href="#" id="auth-toggle-link">Sign Up</a>
+            </div>
+        </div>
+    </div>
+    <div class="app-layout" id="app-layout" style="display: none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="ph-fill ph-student"></i>
+                    <span>StudySpace</span>
+                </div>
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+
+            <nav class="nav-menu">
+                <p class="nav-group-title">Main Menu</p>
+                <a href="#" class="nav-item active" data-target="dashboard">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-target="schedule">
+                    <i class="ph ph-calendar-blank"></i>
+                    <span>Schedule</span>
+                </a>
+                <a href="#" class="nav-item" data-target="tasks">
+                    <i class="ph ph-check-square-offset"></i>
+                    <span>Tasks</span>
+                    <span class="badge" id="nav-tasks-badge">0</span>
+                </a>
+                <a href="#" class="nav-item" data-target="materials">
+                    <i class="ph ph-books"></i>
+                    <span>Materials</span>
+                </a>
+                
+                <p class="nav-group-title mt-2">Tools</p>
+                <a href="#" class="nav-item" data-target="progress">
+                    <i class="ph ph-chart-line-up"></i>
+                    <span>Progress</span>
+                </a>
+                <a href="#" class="nav-item" data-target="pomodoro">
+                    <i class="ph ph-timer"></i>
+                    <span>Pomodoro</span>
+                </a>
+                <a href="#" class="nav-item" data-target="settings">
+                    <i class="ph ph-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <img src="https://ui-avatars.com/api/?name=Alex+Doe&background=7c3aed&color=fff&rounded=true" alt="User Profile" class="avatar" id="sidebar-avatar">
+                    <div class="user-info">
+                        <span class="user-name" id="sidebar-user-name">Alex Doe</span>
+                        <span class="user-role">Pro Student</span>
+                    </div>
+                </div>
+                <button id="logout-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;"><i class="ph ph-sign-out"></i></button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-wrapper">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    <h2 id="topbar-title">Dashboard</h2>
+                </div>
+                
+                <div class="topbar-actions">
+                    <button class="action-btn" id="topbar-bell" title="Notifications">
+                        <i class="ph ph-bell"></i>
+                        <span class="notif-dot"></span>
+                    </button>
+                    <button class="btn-primary" id="new-task-btn">
+                        <i class="ph ph-plus"></i>
+                        <span>New Task</span>
+                    </button>
+                </div>
+            </header>
+
+
+            <!-- Views Container -->
+            <div class="content-area" id="views-container">
+                
+                <!-- Dashboard View -->
+                <div id="view-dashboard" class="view-section active">
+                    <div class="welcome-section">
+                    <div class="welcome-text">
+                        <h1>Welcome back, <span id="welcome-name">there</span>! 👋</h1>
+                        <p>Here is your overview for today.</p>
+                    </div>
+                    <div class="date-widget">
+                        <span id="current-date">October 24, 2023</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Stats Cards -->
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon purple">
+                            <i class="ph-fill ph-check-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="tasks-completed-count">12</h3>
+                            <p>Tasks Completed</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon orange">
+                            <i class="ph-fill ph-fire"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>3 Days</h3>
+                            <p>Study Streak</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon green">
+                            <i class="ph-fill ph-clock-countdown"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="study-time-count">14h 00m 00s</h3>
+                            <p>Study Time</p>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Classes -->
+                    <div class="widget schedule-widget glass-panel">
+                        <div class="widget-header">
+                            <h2>Today's Schedule</h2>
+                            <a href="#" class="view-all">View full</a>
+                        </div>
+                        <div class="widget-content" id="today-schedule-list">
+                            <p class="placeholder-text">Loading schedule...</p>
+                        </div>
+                    </div>
+
+                    <!-- Urgent Tasks -->
+                    <div class="widget tasks-widget glass-panel">
+                        <div class="widget-header">
+                            <h2>Urgent Tasks</h2>
+                            <a href="#" class="view-all">See all</a>
+                        </div>
+                        <div class="widget-content" id="task-list">
+                            <p>Loading tasks…</p>
+                        </div>
+                    </div>
+                </div> <!-- End Dashboard Grid -->
+                </div> <!-- End Dashboard View -->
+
+                <!-- Pomodoro View (Redesigned) -->
+                <div id="view-pomodoro" class="view-section">
+                    <div class="pomodoro-fullscreen">
+                        <!-- Large Circular Timer -->
+                        <div class="pomo-circle-wrapper">
+                            <div class="pomo-circle">
+                                <div class="pomo-wave"></div>
+                                <div class="pomo-content">
+                                    <div class="time-text" id="pomodoro-time">00:00:00</div>
+                                    <div class="pomo-subtext">SET GOAL OR START</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Presets -->
+                        <div class="pomo-presets">
+                            <button class="preset-btn active" data-time="0"><i class="ph ph-check"></i> None</button>
+                            <button class="preset-btn" data-time="25">25m</button>
+                            <button class="preset-btn" data-time="45">45m</button>
+                            <button class="preset-btn" data-time="60">60m</button>
+                            <button class="preset-btn icon-btn"><i class="ph ph-pencil-simple"></i></button>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="pomo-actions">
+                            <button class="action-circle-btn play-btn" id="pomodoro-start"><i class="ph-fill ph-play"></i></button>
+                            <button class="action-circle-btn stop-btn" id="pomodoro-reset"><i class="ph-fill ph-stop"></i></button>
+                        </div>
+
+                        <div class="pomo-quote">
+                            "Focus is the key to mastery."
+                        </div>
+
+                        <!-- Bottom Stats -->
+                        <div class="pomo-stats-buttons">
+                            <button class="stat-outline-btn"><i class="ph ph-clock-counter-clockwise"></i> History</button>
+                            <button class="stat-outline-btn"><i class="ph ph-chart-bar"></i> Analysis</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule View (Calendar) -->
+                <div id="view-schedule" class="view-section">
+                    <div class="calendar-header">
+                        <h2 id="calendar-month-year">October 2023</h2>
+                        <div class="calendar-nav">
+                            <button class="action-btn" id="prev-month"><i class="ph ph-caret-left"></i></button>
+                            <button class="action-btn" id="next-month"><i class="ph ph-caret-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-container glass-panel">
+                        <div class="calendar-weekdays">
+                            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        </div>
+                        <div class="calendar-grid" id="calendar-grid">
+                            <!-- Days will be generated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materials / Syllabus View -->
+                <div id="view-materials" class="view-section">
+                    <div class="syllabus-header">
+                        <h2>Syllabus</h2>
+                    </div>
+                    <div class="syllabus-summary">
+                        <div class="summary-card glass-panel">
+                            <div class="summary-icon blue"><i class="ph-fill ph-book-open"></i></div>
+                            <div class="summary-info">
+                                <h3><span id="total-chapters-completed">0</span>/<span id="total-chapters">0</span></h3>
+                                <p>Total Chapters</p>
+                            </div>
+                        </div>
+                        <div class="summary-card glass-panel">
+                            <div class="summary-icon green"><i class="ph-fill ph-folder"></i></div>
+                            <div class="summary-info">
+                                <h3><span id="total-topics-completed">0</span>/<span id="total-topics">0</span></h3>
+                                <p>Total Topics</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary add-subject-btn" id="add-subject-btn">
+                        <i class="ph ph-plus"></i> Add Subject
+                    </button>
+
+                    <div class="subjects-list" id="subjects-list">
+                        <!-- Subjects will be rendered here by JS -->
+                    </div>
+                </div>
+
+                <!-- Tasks View -->
+                <div id="view-tasks" class="view-section">
+                    <div class="page-header">
+                        <h1>All Tasks</h1>
+                        <p class="page-sub">Manage and track your assignments</p>
+                    </div>
+                    <div class="tasks-filter-bar">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="urgent">Urgent</button>
+                        <button class="filter-tab" data-filter="pending">Pending</button>
+                        <button class="filter-tab" data-filter="done">Completed</button>
+                    </div>
+                    <div class="tasks-container" id="full-task-list">
+                        <p class="placeholder-text">Loading tasks…</p>
+                    </div>
+                </div>
+
+                
+                <div id="view-progress" class="view-section">
+                    <h2>Your Progress</h2>
+                    <p class="placeholder-text">Coming soon.</p>
+                </div>
+                <div id="view-settings" class="view-section">
+                    <div class="page-header">
+                        <h1>Settings</h1>
+                        <p class="page-sub">Manage your account and preferences</p>
+                    </div>
+
+                    <!-- Profile Card -->
+                    <div class="settings-profile-card glass-panel">
+                        <div class="settings-avatar-wrap">
+                            <img id="settings-avatar" src="" alt="Profile Picture" class="settings-avatar-img">
+                            <div class="settings-avatar-badge"><i class="ph-fill ph-camera"></i></div>
+                        </div>
+                        <div class="settings-user-info">
+                            <h2 id="settings-name">Loading...</h2>
+                            <p id="settings-email" class="settings-email-text">Loading...</p>
+                            <span class="settings-badge">Pro Student</span>
+                        </div>
+                        <button class="btn-ghost" id="settings-edit-profile">
+                            <i class="ph ph-pencil-simple"></i> Edit Profile
+                        </button>
+                    </div>
+
+                    <div class="settings-grid">
+                        <!-- App Preferences -->
+                        <div class="settings-group glass-panel">
+                            <div class="settings-group-header">
+                                <i class="ph ph-sliders-horizontal"></i>
+                                <h3>Preferences</h3>
+                            </div>
+
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <i class="ph ph-sun"></i>
+                                    <div>
+                                        <p class="settings-row-title">Light Theme</p>
+                                        <p class="settings-row-sub">Switch to a bright, eye-friendly look</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="theme-toggle">
+                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <i class="ph ph-bell"></i>
+                                    <div>
+                                        <p class="settings-row-title">Notifications</p>
+                                        <p class="settings-row-sub">Receive study reminders</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="notifications-toggle" checked>
+                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <i class="ph ph-arrows-in"></i>
+                                    <div>
+                                        <p class="settings-row-title">Compact Mode</p>
+                                        <p class="settings-row-sub">Reduce spacing for more content</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="compact-toggle">
+                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Account -->
+                        <div class="settings-group glass-panel">
+                            <div class="settings-group-header">
+                                <i class="ph ph-user-circle"></i>
+                                <h3>Account</h3>
+                            </div>
+
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <i class="ph ph-password"></i>
+                                    <div>
+                                        <p class="settings-row-title">Change Password</p>
+                                        <p class="settings-row-sub">Update your login credentials</p>
+                                    </div>
+                                </div>
+                                <button class="btn-ghost" id="settings-change-password">
+                                    <i class="ph ph-arrow-right"></i>
+                                </button>
+                            </div>
+
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <i class="ph ph-export"></i>
+                                    <div>
+                                        <p class="settings-row-title">Export My Data</p>
+                                        <p class="settings-row-sub">Download your tasks and subjects</p>
+                                    </div>
+                                </div>
+                                <button class="btn-ghost" id="settings-export-btn">
+                                    <i class="ph ph-arrow-right"></i>
+                                </button>
+                            </div>
+
+                            <div class="settings-row settings-row-danger">
+                                <div class="settings-row-info">
+                                    <i class="ph ph-sign-out"></i>
+                                    <div>
+                                        <p class="settings-row-title">Log Out</p>
+                                        <p class="settings-row-sub">Sign out from this device</p>
+                                    </div>
+                                </div>
+                                <button class="btn-danger-outline" id="settings-logout-btn">
+                                    Log Out
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- App Info -->
+                        <div class="settings-group glass-panel">
+                            <div class="settings-group-header">
+                                <i class="ph ph-info"></i>
+                                <h3>About</h3>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-info">
+                                    <i class="ph-fill ph-student"></i>
+                                    <div>
+                                        <p class="settings-row-title">StudySpace</p>
+                                        <p class="settings-row-sub">Version 0.1.2 — Built with ❤️</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div> <!-- End Views Container -->
+
+        </main>
+    </div>
+
+    <!-- New Task Modal -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Create New Task</h2>
+                <button class="close-modal" id="close-modal-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Task Name</label>
+                    <input type="text" id="task-name-input" placeholder="e.g. Finish Calculus Assignment">
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="text" id="task-due-input" placeholder="e.g. Today, Tomorrow, in 2 Days">
+                </div>
+                <div class="form-group">
+                    <label>Urgency</label>
+                    <select id="task-urgency-input">
+                        <option value="urgent">Urgent</option>
+                        <option value="warning">Warning</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+                <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;" id="save-task-btn">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Subject Modal -->
+    <div class="modal-overlay" id="subject-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Add Subject</h2>
+                <button class="close-modal" id="close-subject-modal-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input type="text" id="subject-name-input" placeholder="e.g. Computer Science 101">
+                </div>
+                <div class="form-group">
+                    <label>Icon Color</label>
+                    <select id="subject-icon-input">
+                        <option value="math">Green (Math)</option>
+                        <option value="chem">Blue (Science)</option>
+                        <option value="phys">Purple (Physics/Tech)</option>
+                        <option value="eng">Red (English/Arts)</option>
+                        <option value="default">Orange (Default)</option>
+                    </select>
+                </div>
+                <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;" id="save-subject-btn">Save Subject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Event Modal -->
+    <div class="modal-overlay" id="event-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Add Event for <span id="event-modal-date"></span></h2>
+                <button class="close-modal" id="close-event-modal-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Event Title</label>
+                    <input type="text" id="event-title-input" placeholder="e.g. Math Exam">
+                </div>
+                <div class="form-group">
+                    <label>Time</label>
+                    <input type="time" id="event-time-input">
+                </div>
+                <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;" id="save-event-btn">Save Event</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Topic Modal -->
+    <div class="modal-overlay" id="topic-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Add Topic to Syllabus</h2>
+                <button class="close-modal" id="close-topic-modal-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Topic Name</label>
+                    <input type="text" id="topic-name-input" placeholder="e.g. Introduction to Derivatives">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="topic-desc-input" placeholder="e.g. Chapter 1, Section 2">
+                </div>
+                <input type="hidden" id="topic-subject-id">
+                <button class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;" id="save-topic-btn">Save Topic</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
