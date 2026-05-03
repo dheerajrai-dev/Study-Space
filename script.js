@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuth();
 });
 
+let appStarted = false;
+
 async function initAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -46,10 +48,11 @@ async function initAuth() {
     }
 
     supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN') {
+        if (event === 'SIGNED_IN' && !appStarted) {
             currentUser = session.user;
             showApp();
         } else if (event === 'SIGNED_OUT') {
+            appStarted = false;
             currentUser = null;
             showAuthScreen();
         }
@@ -65,6 +68,8 @@ function showAuthScreen() {
 }
 
 function showApp() {
+    if (appStarted) return;
+    appStarted = true;
     authScreen.style.display = 'none';
     appLayout.style.display = 'flex';
     bootstrap();
@@ -399,43 +404,71 @@ async function renderSubjects() {
 
         const progressPercent = subTotal > 0 ? Math.round((subCompleted / subTotal) * 100) : 0;
 
+        const topicsHTML = subjectTopics.length === 0 
+            ? '<p style="color:var(--text-muted); margin:0; font-size:0.85em;">No topics yet. Click Add Topic to create one.</p>'
+            : subjectTopics.map(t => `
+<div class="topic-row ${t.completed ? 'done' : ''}" data-topic-id="${t.id}">
+  <label class="topic-check-wrap">
+    <input type="checkbox" class="topic-checkbox" data-id="${t.id}" ${t.completed ? 'checked' : ''}>
+    <span class="topic-dot"></span>
+  </label>
+  <div class="topic-info">
+    <span class="topic-name">${escapeHtml(t.name)}</span>
+    ${t.description ? `<span class="topic-desc">${escapeHtml(t.description)}</span>` : ''}
+  </div>
+</div>`).join('');
+
         const div = document.createElement('div');
-        div.className = 'subject-card glass-panel';
+        div.className = 'syllabus-card subject-card';
+        div.dataset.id = subject.id;
+        
+        const statusText = progressPercent === 100 ? 'Completed' : (progressPercent > 0 ? 'In Progress' : 'Not Started');
+        const statusClass = progressPercent === 100 ? 'status-completed' : (progressPercent > 0 ? 'status-progress' : 'status-not-started');
+
         div.innerHTML = `
-            <div class="subject-icon ${subject.icon || 'default'}">
-                <i class="ph-fill ph-book-open"></i>
-            </div>
-            <div class="subject-details" style="flex: 1;">
-                <h3>${escapeHtml(subject.name)}</h3>
-                <div class="subject-meta">
-                    <span>${subCompleted}/${subTotal} Topics</span> • 
-                    <span>${progressPercent}% Complete</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
-                </div>
-                <div class="topics-list" style="margin-top: 12px;">
-                    ${subjectTopics.length === 0 
-                        ? '<p style="color:var(--text-muted); margin:0; font-size:0.85em;">No topics yet. Click + to add one.</p>' 
-                        : subjectTopics.map(t => `
-                        <details class="topic-item" ${t.completed ? 'open' : ''}>
-                            <summary>
-                                <div class="topic-summary-left">
-                                    <input type="checkbox" class="task-check topic-checkbox" data-id="${t.id}" ${t.completed ? 'checked' : ''} onclick="event.stopPropagation()">
-                                    <span style="font-size:0.9rem; font-weight:500; ${t.completed ? 'text-decoration:line-through; opacity:0.5;' : ''}">${escapeHtml(t.name)}</span>
-                                </div>
-                                ${t.description ? '<i class="ph ph-caret-down"></i>' : '<span></span>'}
-                            </summary>
-                            ${t.description ? `<p class="topic-description">${escapeHtml(t.description)}</p>` : ''}
-                        </details>
-                        `).join('')
-                    }
-                </div>
-            </div>
-            <div class="subject-actions" title="Add Topic">
-                <i class="ph ph-plus-circle open-topic-modal" data-id="${subject.id}"></i>
-            </div>
-        `;
+  <!-- Card Header -->
+  <div class="subject-card-header">
+    <div class="subject-icon ${subject.icon || 'default'}">
+      <i class="ph-fill ph-book-bookmark"></i>
+    </div>
+    <div class="subject-title-area">
+      <h3>${escapeHtml(subject.name)}</h3>
+      <span class="subject-chip">${subCompleted}/${subTotal} chapters</span>
+    </div>
+    <div class="subject-status ${statusClass}">${statusText}</div>
+    <div class="subject-pct">${progressPercent}%</div>
+    <button class="subject-expand-btn" title="Expand">
+      <i class="ph ph-caret-down"></i>
+    </button>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar progress-track">
+    <div class="progress-fill" style="width:${progressPercent}%"></div>
+    <div class="progress-glow" style="left:${progressPercent}%"></div>
+  </div>
+
+  <!-- Topics Accordion (collapsed by default) -->
+  <div class="subject-body" style="display:none;">
+    <div class="topics-header">
+      <span class="topics-label">Topics</span>
+      <button class="add-topic-btn open-topic-modal" data-id="${subject.id}">
+        <i class="ph ph-plus"></i> Add Topic
+      </button>
+    </div>
+    <div class="topics-list">
+      ${topicsHTML}
+    </div>
+    <div class="subject-card-actions">
+      <button class="btn-complete-chapter" data-id="${subject.id}">
+        <i class="ph ph-check-circle"></i> Complete Chapter
+      </button>
+      <button class="btn-delete-subject" data-id="${subject.id}">
+        <i class="ph ph-trash"></i>
+      </button>
+    </div>
+  </div>
+`;
 
         // OPTIMISTIC topic checkbox — no full re-render
         div.querySelectorAll('.topic-checkbox').forEach(chk => {
@@ -447,10 +480,13 @@ async function renderSubjects() {
                 const cached = cache.topics?.find(t => t.id === topicId);
                 if (cached) cached.completed = completed;
                 // Update visual immediately
-                const nameSpan = chk.closest('summary').querySelector('span');
-                if (nameSpan) { nameSpan.style.textDecoration = completed ? 'line-through' : 'none'; nameSpan.style.opacity = completed ? '0.5' : '1'; }
+                const topicRow = chk.closest('.topic-row');
+                if (topicRow) {
+                    if (completed) topicRow.classList.add('done');
+                    else topicRow.classList.remove('done');
+                }
                 // Update subject progress bar
-                const subjectCard = chk.closest('.subject-card');
+                const subjectCard = chk.closest('.syllabus-card');
                 if (subjectCard) {
                     const allChecks = subjectCard.querySelectorAll('.topic-checkbox');
                     const totalT = allChecks.length;
@@ -478,6 +514,16 @@ async function renderSubjects() {
         });
 
         subjectsList.appendChild(div);
+    });
+
+    document.querySelectorAll('.subject-card-header').forEach(header => {
+      header.addEventListener('click', (e) => {
+        if (e.target.closest('.subject-expand-btn') || e.target.closest('.open-topic-modal')) return;
+        const card = header.closest('.syllabus-card');
+        const body = card.querySelector('.subject-body');
+        const isOpen = card.classList.toggle('expanded');
+        body.style.display = isOpen ? 'block' : 'none';
+      });
     });
 
     document.getElementById('total-chapters').textContent = totalSubjects;

@@ -35,7 +35,7 @@
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/yourusername/studyspace.git
+git clone https://github.com/dheerajrai-dev/Study-Space.git
 cd studyspace
 ```
 

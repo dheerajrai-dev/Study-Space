@@ -260,30 +260,36 @@
                     <div class="syllabus-header">
                         <h2>Syllabus</h2>
                     </div>
-                    <div class="syllabus-summary">
-                        <div class="summary-card glass-panel">
-                            <div class="summary-icon blue"><i class="ph-fill ph-book-open"></i></div>
-                            <div class="summary-info">
-                                <h3><span id="total-chapters-completed">0</span>/<span id="total-chapters">0</span></h3>
-                                <p>Total Chapters</p>
-                            </div>
-                        </div>
-                        <div class="summary-card glass-panel">
-                            <div class="summary-icon green"><i class="ph-fill ph-folder"></i></div>
-                            <div class="summary-info">
-                                <h3><span id="total-topics-completed">0</span>/<span id="total-topics">0</span></h3>
-                                <p>Total Topics</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="btn-primary add-subject-btn" id="add-subject-btn">
-                        <i class="ph ph-plus"></i> Add Subject
-                    </button>
 
-                    <div class="subjects-list" id="subjects-list">
-                        <!-- Subjects will be rendered here by JS -->
-                    </div>
+                    <section class="progress-section">
+                        <div class="syllabus-summary">
+                            <div class="summary-card glass-panel">
+                                <div class="summary-icon blue"><i class="ph-fill ph-book-open"></i></div>
+                                <div class="summary-info">
+                                    <h3><span id="total-chapters-completed">0</span>/<span id="total-chapters">0</span></h3>
+                                    <p>Total Chapters</p>
+                                </div>
+                            </div>
+                            <div class="summary-card glass-panel">
+                                <div class="summary-icon green"><i class="ph-fill ph-folder"></i></div>
+                                <div class="summary-info">
+                                    <h3><span id="total-topics-completed">0</span>/<span id="total-topics">0</span></h3>
+                                    <p>Total Topics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section class="syllabus-section">
+                        <button id="add-subject-btn" class="add-subject-card">
+                            <div class="add-subject-icon"><i class="ph ph-plus"></i></div>
+                            <span>Add New Subject</span>
+                        </button>
+
+                        <div class="subjects-list" id="subjects-list">
+                            <!-- Subjects will be rendered here by JS -->
+                        </div>
+                    </section>
                 </div>
 
                 <!-- Tasks View -->
