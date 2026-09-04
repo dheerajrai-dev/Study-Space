@@ -2,7 +2,6 @@
 
 > A full-stack student productivity web app with real-time data sync, multi-user authentication, and a clean modern dashboard.
 
-**Live Demo → [studyspace.vercel.app](https://studyspace.vercel.app)**
 
 ---
 
